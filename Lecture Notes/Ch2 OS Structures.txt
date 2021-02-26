@@ -1,0 +1,212 @@
+OS STRUCTURES
+
+It has many vantage points
+	- Focuses on the service that the system provides
+	- interfact that makes available to users and programmers
+	- components and interconnections 
+
+It is divided into 3 layers:
+	- Hardware
+	- OS - has its own layers: services(I/O, error, etc), system calls, user interface (GUI)
+	- User and system programs
+
+
+
+OS Services
+
+OS provides and environment for the execution of programs
+	- makes certain services available to programs and to users 
+OS provices functions that are helpful for the user
+	- UI, CLI, GUI
+
+Services include:
+	- User interface(UI): Can include GUI, touch screen interface, or command line interface(CLI)
+	- Program exectution: system loads a program to memory and runs. The prorgam has to end it's execution
+	- I/O operations: a program may involve a file or I/O device. The OS provides a mean to use it 
+	- File- System manipulation: programs need to read/write/delete/create/search and list files
+	- Communications: processes exchange info with one another, by shared memory or message passing
+	- Error Detection: OS needs to take action for CPU, memory, hardware, I/O or user errors and correct
+		- Internal/external hardware errors
+			- memory error/device failure
+		- Software errors
+			- arithmetic overflow, divide by zero, illegal memory access error
+		- Error response
+			- Report error to application, retry or abort 
+	- Resource allocation: CPU has a schedule routine that works with speed of CPU, processes executed, 
+		number of processing cores, and other factors. May also include printers, USBs, and others
+	- Logging: keeps track of which programs use how much and which resource. Used for statistics
+	- Protection/Security: Protection ensures all access to system resource is controlled
+		security protects the system from outsiders and within a public access computer
+
+OS DESIGN AND IMPLEMENTATION - lecture
+	- Design and implementation of OS is not "solvable" but some approaches have proven successful
+	- Internal structure of different Operating Systems can vary widely
+	- Start design by designing goals and specifications
+	- Affected by choice of hardware, type of system
+	- Specifying and designing an OS is a highly creative task of software engineering
+
+	Requirements
+		- User goals 		
+			OS should be convenient to use, easy to learn, reliable, safe, fast
+		- System goals
+			Easy to design, implement and maintain, flexible, reliable, error free, efficient
+	Policies to separate
+		Policy : What will be done
+		Mechanism : How to do it
+			- Mechanisms determine how to do something, policy decides what will be done
+		Separation of policy from mechanism is very important, it allows maximum flexibility of policy
+			decisions are changed later
+
+	Implementation
+		Many variations
+			Early OS's were in assembly
+			Then system programming langauges: Algol PL/1
+			Now C/C++
+		Now: Low levels in assembly, Main body in C, System programs in C,C++, Python, Perl, Scripts
+
+
+	
+
+USER and OS interfaces 
+Interactions include the command- line interface/Command interpreter,GUI or touch screen interfaces 
+
+Command Interpreters
+	- If a system has multiple interpreters, it is called a shell. (windows powershell, command prompt)
+	- Purpose is to receive and execute user commands
+	- Includes: delete, create, list, print, copy, execute, etc
+	- Sometimes implemented in kernal or systems programs
+	- Some commands are built in shell, or names of programs 
+
+Graphical User Interface(GUI)
+	- Employs a mouse/keyboard/monitor based window and menu system
+	- GUIs started in 1970, invented at Xerox PARC
+	- User friendly
+
+Touch Screen Interface
+	- used for mobile systems
+	- Apple products use the springboard touch screen interface
+
+
+SYSTEM CALLS
+
+System calls provide an interface to the services made by an OS. The calls are written in C/C++, but certain
+hardware must be written in assembly
+Systems execute thousands of system calls per second. 
+Each OS has its own name for a system call
+
+They are made by writing a sime program to read data from one file and copy to another
+	- First input: needs names of input and output file, either forced or asking user
+	- Program has to open input and create and open output - each requires a system call
+	- Errors have to be handled as it goes and a system call is created 
+	- Each read and write must return sttus information regarding error conditions
+	- When done, program can close the file - two system calls 
+	- Write a message to screen, indicating completion - system call
+	- Terminate formally - system call
+
+
+APPLICATION PROGRAMMING INTERFACE(API)
+
+Application developers design programs according to an API
+API specifies a set of functions that are available to an application programmer including parameters 
+	and return values
+APIs include Windows API(Windows), POSIX API(POSIX(Linux, Unix, Mac systems) and Java API(Java virtual machine)
+
+An application programmer prefer programming to an API over a system call because:
+	- Portability
+	- Actual system calls can be more detailed and more difficult to work with than the APIs given
+	- 
+
+
+
+
+OS STRUCTURES
+	Many ways to structure an OS
+
+	Simple Structure (MS-DOS)
+		Written to provide most functionality with least space
+		- Not divided into modules
+		- Interace and levels of functionality are not well separated
+		- Monolithic structure
+		- Tightly coupled
+
+		Bottom -> Top
+		ROM BIOS drivers-> MS-DOS drivers -> resident system program -> application program
+
+	Non Simple Structure (Unix)
+		Consists of two separable parts
+			System Programs
+			Kernal
+				- Consists of everything below system call interface and above hardware
+				- Provides files, CPU Scheduling, memory management and OS functions
+
+		
+
+
+	Layered Approach
+		- OS is divided into a number of layers, each built on top of lower layers
+		- Bottom layer(0) is hardware, Highest layer(N) is the UI
+		- With modularity, layers are selected such that each uses operations and services of 
+			only lower level layers
+		- Loosely coupled and each layer has its specific functionality
+		- Change in one component doesn't affect the other 
+		- Disadvantage : hard to differentiate functionality between different layers, 
+			overall performance poor due to overhead
+		- No OS uses the layered approach
+
+	MicroKernal System Structure
+		-AIX(IBM), Mac OsX, Minix
+		- Moves as much from kernal into user space
+		- Only a few essential functions in kernal
+			- Primitive memory management
+			- I/O and interrupt management
+			- Inter process communication
+			- Basic scheduling
+		- Other OS services are provided in user mode
+			- Device Driver/File system
+		- Communication takes place between user modules using message passing
+		- Performance penalty caused by replacing service calls with message exchanges 
+		
+		Pros: 
+			- Easy to extend a microkernal
+			- Easier to port OS to new architectures
+			- More reliable, flexible, extensible, portable and secure
+		Cons: 
+			- Performance overhead of user space to kernal space communication
+
+	Modulular approach	
+		- Loadable Kernal modules
+			- Uses object oriented approach
+			- Each core component is separate
+			- Each talks to the other over known interfaces
+			- Each is loadable as needed within the kernal
+		- Similar to layers but more flexible
+		- Seen in Linux, Solaris
+	
+	Hybrid Systems
+		- Most Modern OS's are not one pure model
+		- Hybrid combines multiple approaches to address performance, security, usability needs
+		- Linux/Solaris kernals in kernal address space, so monolithic, plus modular for 
+			dynamic loading of functionality
+		- Windows is mostly monolithic plus microkernal for different subsystem personalities
+		- Apple Max OS X hybrid, layered, Aqua UI and Cocoa programming environment
+			- Kernal consists of Mach microkernal and BSD Unix part, I/O kit and 
+				dynamically loadable modules(kernal extensions) 			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

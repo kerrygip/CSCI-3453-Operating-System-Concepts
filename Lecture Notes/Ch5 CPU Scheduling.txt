@@ -1,0 +1,291 @@
+CPU SCHEDULING
+- Basis of multiprogrammed OS
+- Various CPU scheduling algorithms
+
+- Many implicit assumptions for CPU scheduling
+	- One program per user
+	- One thread per program
+	- Programs are independent
+	- These are unrealistic, but they simplify program so it can be solved 
+- Process is a program in execution, thread is a segment of a process, task and process are synonymous
+- Process Scheduling 
+	- General scheduling concepts
+- Thread Scheduling
+	- Thread specific ideas 
+- Kernel level threads are scheduled by the OS
+- Issue fairness of multi-user systems
+	- How is it split between user and programs?
+	- Do we give equal time to all users irrespective of the number of jobs?
+	- GOAL: Allocate CPU time to optimize some desired parameters of system
+
+
+
+BASIC CONCEPTS
+- Objective of multiprogramming is to have some process running at all times to maximize CPU utilization
+- A process is executed until it must wait for the completion of some I/O request
+- Several processes are kept in memory at one time
+- When a process has to wait, the OS takes the CPU away from that process and gives CPU to another process
+- Every time a process has to wait, another process can take over the use of the CPU
+- Scheduling of this kind is a fundamental OS function and design 
+- All computer resources are scheduled before use
+
+
+CPU-I/O BURST CYCLE
+- Process execution consists of a cycle of CPU execution and I/O wait
+- Alternates between those two states (CPU Burst and I/O Burst)
+	- Process begins with CPU burst then waits for I/O request to I/O Burst
+	- I/O is done, goes back to process until another I/O 
+	- Process continues with a final CPU burst where the process voluntarily terminates
+- CPU burst distribution:
+	- Consists of many short CPU bursts and a few longer bursts 
+	- burst lasts for 3 ms
+
+- Process gets started -> goes to ready state -> runs -> terminates
+	- If a process is running, it might need and I/O -> then goes to wait state
+	- After waiting, goes back to ready
+	- Run state can do some preemtive process and goes back to ready
+	- Ready state can have a queue(ready queue) of many processes (p4, p3, p2, p1)
+	- If using p1, then can push that over to run state
+	- A wait state can have an I/O queue. 
+	- Ready state can push/schedule p1, p2, p3 in the run state
+
+CPU SCHEDULER
+- When the CPU becomes idle, the OS has to select one of the processes in ready queue to be executed
+- Selection process is carried out by CPU scheduler and allocates CPU to that process
+- Queue may be ordered in various ways (FIFO, round robin, priority queue, etc)
+- CPU Scheduling decisions may take place when a process:
+	- Switches from running to waiting state (non)
+	- Switches from running to ready state (Preemptive)
+	- Switching from waiting to ready (Preemptive)
+	- Terminates 
+- Scheduling scheme is nonpreemtive, cooperative or preemtive
+	- Nonpreemtive scheduling:
+		- Once a CPU has been allocated to a process, the process keeps the CPU until it releases 
+			- Release by termination or by switching to waiting state
+		- Assumes kernel structure is simple so that no process will occur with data structures
+			in an inconsistent state
+	- PreEmptive Scheduling
+		- All modern OS systems use preemptive scheduling
+		- Preemptive scheduling can create inconsistent states
+			- Two processes are going, one is updating data, the next is starting to read ig
+				- Creates inconsistent data
+		- Preemption affects design of OS kernel 
+	- Interrupts can happen at any time and cannot be ignored, so code must be safeguarded 
+		- Interrupts are disabled at entry and reenable them at exit
+
+
+DISPATCHER
+- Gives control of the CPU to the process selected by the short term scheduler
+- Should be as fast as possible
+- Involves:
+	- Context switching
+	- Switching from user mode
+	- Jumping to proper location in the user program to restart that program
+- Dispatch latency :
+	- Time it takes for dispatcher to stop one process and start another running
+- Voluntary Context Switch:
+	- Occurs when a process has given up control of the CPU because it requires a resource that is 
+		unavailable
+- Nonvoluntary Context switch:
+	- Occurs when CPU has been taken away from a process
+		- Time slice has expired or has been preempted by higher priority process
+
+SCHEDULING CRITERIA
+- CPU Utilization : 
+	- CPU utilization ranges from 0-100%, 40% for light and 90 for heavy
+- Throughput : 
+	- Number of processes that are completed per time unit
+- Turnaround time : 
+	- How long it takes to execute the process. 
+	- Interval from time of submission of a process to completion is turnaround time
+- Waiting time : 
+	- CPU Scheduling Algorithm affects the amount of time that a process spends waiting in waiting queue
+	- Waiting time is sum of the periods spent waiting in ready queue
+- Response time : 
+	- Submission of a request until first response is produced
+
+- It is desirable to max CPU utilization and throughput and minimize turnaround, waiting and response time
+- Although it is dependent on what is used for (ie. service or personal pc)
+
+SCHEDULING ALGORITHM
+- Have many different algorithms, including first come first served, round robin, priority, multilevel, etc
+
+- First come, First Served (ch5, pt 2)
+	- Simplest scheduling algorithm
+	- Process that requests CPU first is allocated the CPU first
+	- Easily managed with a FIFO queue
+	- When the process enter ready queue, its process control block (PCB) is linked onto tail of the queue
+	- When CPU is free, it is allocated to the process at the head of the queue
+	- Running process is removed from the queue
+	- Wait time is long, it follows the Gantt chart
+	- Convoy effect may occur:
+		- All processes must wait for the big process to finish the CPU
+		- Results in lower CPU utilization 
+		- ex.  One large CPU process and many I/O process
+			- All I/O processes finish and move to ready queue, waiting for CPU process
+			- While in I/O process are in ready queue, I/O devices are idle
+			- CPU finally finishes CPU burst and moves to I/O device
+			- All I/O process have short CPU burst, execute quick and move back to queue
+			- CPU now sits idle
+		- CPU -> ready -> run -> run -> runs slowly -> goes to I/O device
+		- I/O -> ready -> ready queue -> I/O device idle -> moves to CPU -> finishes quickly
+	- It favors CPU bound processes:
+		- I/O bound processes have to wait until CPU bound processes finish
+		- Has to wait even if I/O is completed
+		- Could keep I/O devices busy by giving more priority to I/O bound processes
+
+- Round Robin (ch5, pt3)
+	- Policy is targeted to time sharing systems
+	- Similar to FCFS but permit preemption
+	- Allows the system to switch between processes
+		- Preempt process after a fixed time interval and place on tail of ready queue
+		- Always select next process from head of ready queue
+	- A small unit of time called a time quantum or time slice is defined
+		- Each process assigned a time quantum (10-100 ms)
+			- At quantim expiration process moved to tail of ready queue
+	- If n processes in ready queue, time quantum = queue
+		- Ready queue is treated as a circular queue and treated as FIFO
+		- Each process recieves 1/n of CPU time in chunks of at most queue units
+		- No Process waits more than (n-1) queue time units for CPU
+			- An interrupt will occur, context switch executed and process is put at end of queue
+			- Context switch is a small fraction of time quantum
+			- Average burst < quantum
+		- Average wait time is also long
+		- Turnaround also depends on size of time quantum
+			- Better performance if processes complete within one quantum
+	- Performance depends on size of quantum
+		- Large behaves like FCFS
+			- Want large so we can compare context switch time
+		- Small behaves like processor sharing
+		
+
+- Priority Scheduling (ch5, pt4)
+	- Assign and integer to each process and select highest priority when making scheduling decisions
+	- CPU is allocated to the process with highest priority (1, highest priority)
+		- No consensus if 0 is highest or lowest priority
+	- Preemptive
+		- if priority current < priority new.arrigval -> preempt current process and assign
+			CPU to new arrival
+	- Non Preemptive:	
+		- If priority new.arrival is highest -> put at the head of ready queue
+	- Issue with indefinit Blocking or Starvation
+		- A Process that is ready to run but waiting on CPU is blocked
+		- Priority scheduling algorithm can leave some low priority waiting forever
+		- AGING fixes this problem
+			- involves gradually increasting the priority of those that wait for a while
+		- Another way to fix it is to use round robin
+			- System executes highest priority and runs processes with same priority using RR
+	- Priority can be defined by OS or by user
+		- OS may use a statically assigned numeric priority or change it dynamically based on 
+			execution properties or process
+		- User can declare importance
+
+- Multilevel Queue (ch5, pt4, 14 min)
+	- Have separate priority queues running
+	- Highest priority - > lowest priority
+		- Real Time Process -> System Process -> Interactive Process -> Batch Process
+		- Each queue has absolute prioity over lower priority queues
+	- Ready queue is partitioned into separate queues and has its own scheduling algorithm:
+		- Foreground (Interactive) - Round Robin
+		- Background (Batch) - First Come First Serve (FCFS)
+	- Scheduling must be done between the queues
+		- Fixed priority scheduling (Serve all foreground then background)
+			- Possibility of starvation
+		- Time Slice:
+			- Each queue gets a certain amount of CPU time which it can schedule 
+		ex. 80% to forground, 20% to background
+
+- Shortest Job First(ch5, pt5)
+	- Scheduler must "know" the next CPU burst length of each process in ready queue
+		- Process must declare burst length OR system predicts next length based on usage
+	- Process with shortest burst goes next
+		- If tie, uses FCFS to break tie
+	- Two scheduling schemes:
+		- Non preemptive:
+			- Once CPU is assigned, process not preempted until its CPU burst completes
+		- Preemptive:
+			- If new process with CPU burst less than remaining time of current, preempt
+				- interrupt and select new process
+			- Shortest remaining time first (SRTF)
+		- Similar to priority scheduling
+			- Shorter burst time -> highest priority
+	- Shortest Job First(SJF) is optimal
+		- Gives minimum average waiting time for a given set of processes 
+		- Moving a short process before a long one decreases wait time of short process more than
+			it increases the wait time of a long process
+			- Average wait time decreases
+	- Cannot be implemented at the level of CPU scheduling 
+		- No way to know the length of next CPU burst
+	- Next CPU Burst is predicted as exponential average of measured lengths of previous CPU bursts
+
+
+THREAD SCHEDULING
+- Executes separately from the rest of the process
+- An application can be a set of threads that cooperate and execute concurrently in the same address space
+- Threads running on separate processors yields a dramatic gain in performance
+- Applications requireing significant interaction among threads may have significant performance impact 
+	with multiprocessing 
+- Needs to be a distinction between user level and kernel level threads
+- On modern OS's, kernel level threads are scheduled, not processes
+- User level threads are managed by a thread library
+	- Kernel is unaware of them. 
+	- User level threads must be mapped to an associated kernel level thread
+		- runs on LWP(lightweight process) 
+- Process- contention scope(PCS):
+	- On Many-to-One and Many-to-Many models, thread library schedules user level threads to run on LWP
+	- Competition for CPU takes place among threads belonging to the same process
+	- Typically done via priority set by programmer
+		- Not adjusted by thread library
+	- Will preempt  the thread
+	- No guarantee of time slicing
+- System contention scope (SCS):
+	- Used to decide which kernel level thread to schedule on a CPU
+	- Competion among all threads in the system
+	- Used by One-to-One model
+- User level threads
+	- No clock interrupts per threads 
+	- A computer bound thread will dominate its process but not the CPU 
+	- A thread can yield to other  threads with the same process
+	- Typically round robin or priority 
+	- Context switch from thread to thread is simpler	
+	- App specific thread scheduler can be used 
+	- If a thread blocks on I/O, the entire processes is blocked 
+- Kernel level thread
+	- Context switch from thread to thread is expensive
+		- Scheduler can make more informed choices
+	- A thread blocking on I/O doesn't block all other threads in process
+
+
+MULTIPROCESSOR THREAD SCHEDULING
+- Load sharing
+	- Processses are not assigned to a particular processor
+- Gang scheduling
+	- a set of related threads is scheduled to run on a set of processors at the same time
+- Dedicated processor assignment
+	- Threads are assigned to a specific processor
+- Dynamic scheduling
+	- Number of threads can be altered during course of execution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

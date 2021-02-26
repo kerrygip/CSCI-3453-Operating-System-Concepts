@@ -1,0 +1,278 @@
+Operating System Concepts:
+Operating System exists to solve the problem of a usable computer system.
+No definition is universally accepted
+
+Includes: Hardware, OS, Application programs and User
+
+Hardware: CPU, Memory, I/O
+Application programs: Processors/Spreadsheets/Compiler
+Operating Systems: Hardware, Software + data
+Embedded Systems: Have little to no user interface, eg. Microwave
+
+Kernal:The one program that is running at all times
+	- includes system programs and application programs
+
+Mobile operating systems include a middleware, a set of software frameworks that 
+	provide additional services to application devleopers. It can 
+	support databases, multimedia and graphics
+
+Operating systems have a DEVICE DRIVER for each device controller. 
+	Device driver understands device controller and provides OS with interface
+	to device. CPU and controllers execute in parallel. 
+
+
+SYSTEM OPERATIONS:
+
+Interrupts:
+	- loads appropriate registers in device controller. 
+	Controller examines content of registers to determine action
+	Controller starts data transfer from device to local buffer
+	When it is done, controller informs driver that it is done
+	Driver then gives control to other OS parts and returns the data
+	Controller informs device driver that it is done by interrupt
+		uses an interrupt request line and jumps to interrupt- handlder
+		routine
+			it saves state, determines process and return from interrupt
+
+	NEEDS 3 features - provided by interrupt controller hardware
+		1.defer interrupe during critical processing
+		2. efficient way to dispatch interrupt handler for device
+		3. Multilevel interrupts - critical vs non and respond accordingly
+	
+	2 interrupt request lines:
+		- nonmaskable interrupt - for unrecoverable memory errors
+		- maskable- can be turned off by CPU before execution
+	
+	Interrupt chaining makes it so that it reduces the need for one interrupt handler
+	to search for the source of interrupt. The element in the interrupt vector
+	points to head of a list of interrupt handlers. The interrups are called one
+	by one until something can service the request 
+		- it is organized by priority levels
+
+	Used to handle asynchronous events. Device controllers and hardware faults 
+	raise interrupts. They are organized by priority and good for system performance
+
+
+Storage Structure:
+	- CPU can only load from memory
+	- Most comps run from RAM/Main memory. RAM is implemented in DRAM
+	- The first program during startup is on a bootstrap program that loads OS
+	- RAM is volatile, doesn't work if comp is off/lost so OS is on EEPROM
+	- Electrically erasable programmable read only memory (EEPROM) and on firmware
+	- EEPROM is slow, cannot be changed frequently and contains static programs and data
+	- Memory is stored in bytes and each byte has it's own address
+	- Interaction is achieved by load/store instructions. 
+	- Load moves from memory to register in CPU
+	- Store moves from register in CPU to memory
+
+	- Registers are the fastest, smallest storage capacity, volatile
+	- Cache 2nd fastest, 2nd smallest, volatile
+	- RAM 3rd, last of volatile
+	- Above listed are considered semi conductor memory
+
+	VON NEUMANN ARCHITECTURE (instruction execution cycle)
+	- gets instruction from memory 
+	- stores instruction in instruction register
+	- After instruction is decoded and executed, result is stored back in memory
+	- Ideally, we want everything on main memory, but is impossible because
+		1. RAM is too small to store everything permanently
+		2. RAM is volatile and loses content when power is off or lost
+
+	Secondary storage: Nonvolatile storage will be called NVS
+	- Extension of main memory, can hold large quantities of data permanently
+	- Hard Disk Drives or Nonvalatile Memory Devices(NVM). 
+	- Many are stored here until moved to memory
+	- Nonvolatile storage, getting slower
+	
+	Tertiatry storage:
+	- Special purpose use
+		- CDs, Cache memory, Blue-Ray, magnetic tapes, etc.
+	- more slower, can contain the most data  
+
+
+
+I/O Structure
+	- Large part of OS code is for managing I/O
+	- Interrupt driven I/O causes high overhead when used for bulk data
+	- Direct Memory Access(DMA) is used
+	- Device controller transfers entire blocks of data directly to/from device and memory
+
+
+
+COMPUTER SYSTEM ARCHITECTURE
+	- Single Processsor Systems
+		Core is the part that executes instructions and registers for storing data
+		Core is capable of executing general purpose instructions
+		
+	- MultiProcessor Systems
+		2 or more processors, each with a single core CPU. The processors can share
+		clock, memory and other devices. 
+		Primary advantage is increased throughput.
+		Increased speed is not proportional to more processors, 
+		overhead in keeping parts working reduces gain
+		Definition includes multicore systesms, where there are multiple cores
+		in a chip
+		one chip, multiple cores < multiple single core chips
+		Blade servers are systems which multiple processors are placed on the same 	
+		chassis but has its own OS
+		
+		Symmetric multiprocessing(SMP)
+		- peer CPU processor performs all tasks, including OS functions 
+		- many processes can run simultaneously, lessening workload if data structures
+		are shared
+		- However, too many multiprocessors cause a bottleneck of systems, fixed by
+		- giving them their own local memory and share the CPU systems
+		- It is called non-unform memory access - or NUMA
+
+	- Clustered Systems
+		Gathers multiple CPUs that share storage and are linked through LAN
+		Allows for high performance computing environments when ran in parallelization
+			- Divides a program into separate components that run in parallel
+			- Results from node combine into final solution
+		Clusters involve multiple systems/nodes joined together
+		- each node is a multicore system. Also considered loosely coupled
+		Clustering provides high availability service. Included redundancy in layers
+		One node can take over another node if one fails
+		High reliability and graceful degradation or even fault tolerant since the
+		- nodes can take over one another
+		Can be structures symmetrically or assymettrically
+		- if Asymmetric, one machine is hot standby while other is running
+			if machine fails, hot standby takes over
+		- if Symmetric, two or more hosts are running and watch one another
+			more efficient, but needs many programs running
+
+
+OPERATING SYSTEM OPERATIONS
+
+When a computer turns on, programs are loaded after the kernal to become system daemons,
+which run the entire time the kernal is running. 
+If there is nothing running, nothing moving, the OS will wait for an interrupt 
+
+
+Multiprogramming and Multitasking
+	- Multiprogramming increase CPU utilization by organizing programs so that the 
+	CPU always has something to do. A program in execution is called a process
+	It will constantly switch to other programs to execute if it has to wait.
+
+	- Multitasking is an extension of multiprogramming. CPU will execute multiple processes 
+	by switching frequently among them, providing fast response time
+
+	- Response time is ensured by virtual memory. Allows execution of a process not in
+	memory. Allows programs that are larger than physical memory to be run
+
+
+Dual-mode and Multimode Operation 
+
+	- 2 Separate modes of operation: User and Kernal Mode/Superviser/System/Privileged
+	- A Mode Bit is added to indicate current mode: Kernal(0) or User(1)
+		- Although can have more protection rings, i.e User(3)
+	- CPUs that support virtualization has a separate virtual mode called 
+		Virtual Machine Manager(VMM). It has more privilege than user
+	- Dual mode allows to protect the OS from users
+
+Timer
+
+It keeps the CPU out of an infinite loop. A timer is set to interrupt the computer after a specified period
+The OS sets the timer and when it reaches 0, an interrupt happens
+
+
+Resource Management
+
+A process is the instance of a program in execution
+
+Process Management
+	- A Process is a unit of work in a system
+	- A system is a collection of processes
+	- A process needs resouces to complete tasks: CPU time, memory, files. I/O
+	- Processes can be OS or user processes
+	- Resources are allocated during execution, when complete, the OS reclaims any reusable resources
+	- A program is a passive entity where a process is active entitiy
+	- Single thread process has one program counter specifying next instructions and is on repeat
+	- One instruction is done at a time for a sequential process
+	- If multiple things are running with the same program, they are separate execution processes
+	- Multithreaded process has multiple program counters, pointing to next instruction for a thread
+	- Processes can execute concurrently by multiplexing on one CPU core or in parallel across cores. 
+	- Responsible for:
+		- Creating and deleting user/system processes
+		- Scheduling processes and threads on CPU
+		- Suspending and resuming processes
+		- Provide mechanisms for process synchronization and process communitication
+
+Memory Management
+	- Main memory is central to OS 
+	- Each byte has it's own address
+	- Main memory is a repository of quick access data shared by CPU and I/O
+	- CPU reads from main memory on a von Neumann architeecture
+	- For a program to execute, it has to be mapped to absolute addresses and loaded into memory
+	- Program runs by accessing program instructions and data from memory by making absolute addresses
+	- When prorgam  terminates, it's memory space is cleared and next program can be loaded into it
+	- It is systematic
+	- Computers have to keep several programs in memory, creating a need for memory management
+	- Each hardware design needs own hardware support to determine effectiveness of memory mangagement
+		algorithms 
+	- Responsible for:
+		- Keeping track of what memory is being used and what processes are using them
+		- Allocating and deallocating memory
+		- Deciding which process/processes and data to move in/out of memory
+
+File System Management
+	- A defined storage unit, fil, a uniform, logical view of information storage. 
+	- Store information in primary, secondary or even tertiary storage. 
+	- A file is a collection of related information defined by creator
+	- Responsible for: 
+		- Creating/deleting files and directories to organize files
+		- Supporting primitives for manipulating files and directories
+		- Mapping files onto mass storage
+		- Backing up files on non volatile storage 
+
+Mass Storage Management 
+	- Secondary storage to back up main memory
+	- Since it is used frequently and extensively, it must be used efficiently
+	- Responsible for:
+		- Mounting/unmounting
+		- Free space management
+		- Storage allocation
+		- Disk scheduling
+		- Partitioning
+		- Protection 
+	
+Cache Management 
+	- Information is kept in storage, as it is used, it is copied into a faster storage system,
+		the cache on a temporary basis
+	- If it is in the cache, we use it from there first, if not then we will make a copy to put in cache
+	- Cache is registered as high speed by internal programmable registers
+	- Without cache in hardware, CPU would have to wait cycles while an instruction was fetched from memory
+	- Caches have limited size 
+	- Selection of cache size and replacement policy can increase performance
+	- Data transfter from cache to CPU and registers is hardware function
+	- Data transfer from disk to memory is OS function
+	- In a heirarchial storage, same data can appear in different levels of storage
+		- Magnetic disk -> main memory -> cache -> hardware register
+
+
+Virtualization
+	- running two or more OS on a single computer
+	- similar to emulator 
+
+Kernal Data Structures
+	- Include lists, linked lists, stacks, queues, trees, hash functions, maps and bitmaps 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

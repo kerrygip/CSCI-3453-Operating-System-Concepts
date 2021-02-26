@@ -1,0 +1,296 @@
+- A Thread is a basic unit of CPU utilization. 
+	- Compromises of Thread ID, program counter(PC), register set and a stack
+	- Shares with other threads in the same process, it's code seciton, data section and OS resource
+
+MOTIVATION
+- Most applications are multithreaded. They are implemented as a separate process with several threads
+- Kernals are multithreaded
+- Threads are run within an applicaiton
+	- Can be designed to leverage processing power on multcore systems
+	- Can perform several CPU intensive tasks in parallel
+- Multiple tasks within the application can be implemented by separate threads
+- Process creation is heavyweight
+- Thread creation is lightweight
+- Can simplify code and increase efficiency
+
+
+BENEFITS
+- Responsiveness: Allows for continued execution if part of process is blocked, Good for UI
+- Resource Sharing: Threads share resources of process, easier than shared memory or message passing
+- Economy: Cheaper than process creation, thread switching gives lower overhead than context switching
+- Scalabilty: Process can take advantage of multiprocessor architectures
+
+
+MULTICORE PROGRAMMING
+- Put multiple cores on one chip where each core appears as a separate CPU to the OS
+- More efficient use of cores and improved concurrency
+	- Concurrent: Dealing with lots of things at once. Execution of threads will be woven with time
+		- Some threads can run in parallel because the system can assign a thread to a core
+		- All the tasks can make progress
+		- Possible to be concurrent without parallelism (usually on single core processors)
+	- Parallelism: Doing lots of things at once
+	
+
+MULTICORE PROGRAMMING CHALLENGES
+- Designers must write schedulign algorithms that use multiple processing cores to allow parallel execution
+- Application programmers need to modify existing programs as well as design new programs that are threaded
+- Problems: 
+	- Identifying tasks: Find areas that can be divided into concurrent tasks
+		- Tasks that are independente can run in parallel on individual cores
+	- Balance: Tasks perform equal work of equal value
+	- Data Splitting: Data accessed and manipulated must be divided to run on separate cores
+	- Data Dependency: Data accessed by tasks must be examined for dependency between multiple tasks
+		- Execution of tasks must be synchronized to accompodate data dependency
+	- Testing/Debugging: Multiple paths are possible, testing/debugging concurrent systems are more
+		difficult than single threaded applications 
+
+
+TYPES OF PARALLELISM
+- Data Parallelism: Distributing subsets of same data across multiple cores and performing same operation
+	on each core
+- Task Parallelism: Distributing tasks(threads) across mutltiple cores, each thread has a different 
+	operation on each core
+- As number of threads grow, architectural support of threading grows
+	- CPUs have cores as well as hardware threads 
+
+
+AMDAHL's LAW
+- Formula that identifies potential performance gains from adding additional computing cores to an 
+	application that has both serial(non parallel) and parallel components. 
+	- S is serial portion and N is processing cores
+
+- Speedup = 1/(S + (1-S)/N ))
+
+- as N approaches infinity, speedup converges to 1/S
+	
+
+THREAD LIBRARY
+- Provides the programmer an API for creating and managing threads.
+- Two ways to implement a thread library: Kernel and User threads 
+
+USER LEVEL THREADS
+- Threads are managed by a thread library
+	- Kernal is unaware of the presence of threads
+- Advantages:
+	- No kernal modification is needed to support threads
+	- Efficient: creation/deletion/switches don't need system calls
+	- Flexibility in scheduling: 
+		- Library can use different scheduling algorithms 
+		- Can be application dependent 
+- Disadvantages: 
+	- Need to avoid blocking system calls(all threads are blocked)
+	- Does not take advantage of multiprocesses or parallelism
+
+- Two ways to implement: 
+	- Provide a library entirely in user space with no kernal support
+		- All code and data structures for library exists in user space
+		- Invoking a funciton in library results in local function call and not system call
+	- Implement a keneral level library supported directly by OS
+		- Code and data structures for library exists in kernal space
+		- Invoking a function in API for library results in sytem call to kernel
+
+- Thread Creation:
+	- Asyncrhonous threading: 
+		- Once a parent creates a child, parent resumes execution so child and parent run concurrent
+		- The threads are independent and little data sharing between them
+		- Used for designing responsive UI
+
+
+	- Synchronous threading:
+		- Parent thread creates or or more children and must wait for all of its children to terminate
+			before it can resume
+		- Children work concurrently, but parent cannot start until kids are terminated and 
+			joins with parent
+		- Involves significant data sharing among threads
+			- Parent can combine all the results calculated by its children
+
+PTHREADS - python
+	- May be provided at either user or kernel level
+	- Specification, not implementation
+	- POSIX standard(IEEE 1003.1c) API for thread creation and synchronization
+	- API specifies behavior of thread library, implementation is up to development of library
+	- Common in UNIX OS
+
+JTHREADS - Java
+	- Java threads are managed by JVM
+	- Typicallly implemented using the threads model provided by underlying OS
+	
+
+KERNAL THREADS
+- Supported by kernal
+- Kernel is aware of the presence of threads
+- Better scheduling decisions, more expensive
+- Better for multiprocessesr and more overhead for uniprocessor
+- Pros:
+	- System calls won't block the entire process
+- Cons:
+	- Context switching becomes expensive and is almost as expensive as context switching b/w processes
+
+
+COMPARISON
+- USER LEVEL THREADS:
+	- Managed by application
+	- Kernel unaware of thread
+	- Context switching is cheap
+	- Create as many threads as needed
+	- Used with care
+- KERNEL LEVEL THREADS:
+	- Managed by kernel
+	- Consumes kernel resources
+	- Context switching expensive
+	- Threads limited by kernel resources
+	- Easier to use 
+
+- Key issues:
+	- Kernel threads provide virtual processors to user level threads
+	- If all of kernel threads are blocked 
+		- Then all user level threads will be blocked even if program logic allows them to proceed
+
+HYBRID THREADS
+	- Solution to key issues is to use both during implementation
+	- Referred to as lightweight process(LWP)
+	- Each heavyweight process can contain as many LWP
+	- LWP can offer synchronization using mutexes and condition variables without calling kernal
+		and therefore are fairly cheap 
+
+
+MANY-TO-ONE
+- Many user level threads mapped to single kernel thread
+- One thread blocking causes all to block
+- Multiple threads cannot run in parallel because only one may be used in kernel at a time
+- Few systems use this model
+- Thread management is done by thread library in user space so it is efficient
+
+ONE-TO-ONE
+- Each user level thread maps to kernel thread
+- Creating a user level thread creates a kernel thread
+- More concurrency than many to one
+- Number of threads per process sometimes restricted due to overhead
+	- User thread needs corresponding kernel thread
+- Allows mutliple threads to run in parallel on multiprocessors 
+
+
+MANY-TO-MANY
+- Allows many user level threads to be mapped to many kernel threads
+- Number of kernel threads may be specific to either a particular application or machine
+- Allows OS to create a sufficient number of kernel threads 
+- None of the shortcomines of One-to-One or Many-to-One. 
+	- Can create many threads 
+	- Kernel threads can run in parallel on multiprocessor
+
+	TWO-LEVEL
+	- Similar to Many-to-Many, except it allows a user thread to be bound to kernel thread
+	- Many user level threads to a <= kernel threads 
+
+IMPLICIT THREADING
+- Growing in popularity as number of threads increase
+- Creation and management of threads done by compilers and run time libraries rather than programmers
+- Three methods explained:
+	- Thread Pools
+	- OPEN MP
+	- Grand Central Dispatch
+- Other methods include Microsoft Threading Building Blocks(TBB) or java.util.concurrent package
+- Requires application developers to identify tasks, not threads that can run in parallel. 
+- A task is written as a function, which many run time library maps to a separate thread using ManyToMany
+- Advantage is that developers only need to identify parallel tasks and libraries detemine specific details
+	of thread creation and management
+
+THREAD POOL
+- When a server receives a request, it creates a separate thread to service the request
+- Where cutting a separate thread is superior to creating a separate process, a multithread server has issue
+- First issue concerns the amount of time required to create the thread
+- It is more troublesome. Each concurrent request is serviced in a new thread, there is no limit to 
+	number of threads that can be active
+	- Unlimited threads can exhause system resources
+- Thread pool fixes those concerns
+- Creates a number of threads in a pool where they wait for work
+- Advantages:
+	- Slightly faster to service a request with an existing thread than to create a new one
+	- Allows number of threads in teh application to be bound to the size of the pool
+	- Separating tasks allows for different strategies to run them
+	- Taks could be scheduled to run periodically
+	
+OPEN MP
+- Set of compiler derctives for an API for C, C++, FORTRAN
+- Provides support for parallel programming in shared memory environments
+- Identifies parallel regions- blocks of code that can run in parallel
+- #pragma omp parallel
+- Create as many threads as cores
+
+Grand Central Dispatch
+- Apple tech for Mac OS X and iOS
+- Extensions to C, C++, API and run time libraries
+- Allows identification of parallel sections
+- Manages most of the details of threading
+- Blocks are placed in dispatch queue
+	- Assigned to available thread in thread pool when removed from queue
+
+THREADING ISSUES
+- Semantics of fork() and exec() system calls
+	- They can change in a multithreaded program
+	- fork() system call is used to create a separate duplicate process
+	- Does fork() duplicate only the calling thread or all threads?
+		- Some UNIXs have two versions of fork
+			- One can duplicate all threads
+			- Another can duplicate only the threads that invoked the fork() system call
+	- exec() works as normal, it replaces the running process of all threads
+		- If thread invokes exec(), Program specified in parameter will replace entire process
+
+
+SIGNAL HANDLING
+- Signals are used in UNIX systems to notify a process that a particular event has occured
+- Signals can be received either Synchronous and asyncrhonous
+	- Signal is generated by particular event
+	- Signal is delivered to a process (Single threaded)
+	- Signal is handled by one of two signal handlers
+		- Default Signal Handler: kernal runs when handling signal
+		- User Defined Signal Handler: Default can be overrun and can handle the signal
+- If signal is multithreaded:
+	- Signal is delivered to the thread to which signal applies
+	- Signal is delivered to every thread in process
+	- Signal is delivered to certain threads in process
+	- Signal is delivered to specific thread to recieve all signals for the process
+- Thread Cancellation
+	- Involves terminating a thread before it is completed
+		- Asynchronous : terminates the target thread immediately
+			- May not free a necessary system wide resource, just of the  cancelled thread
+		- Deferred : allows the target thread to periodically check if it should be cancelled 
+			- Cleanup handler is then invoked
+				- Allows any resources that have been acquired to be released 
+	- If a thread has cancellation disabled, cancellation remains pending until thread enables it
+
+- Thread Local Storage (TLS)
+	- Allows thread to have its own copy of data
+	- Useful when you don't have control over thread creation process( like in a thread pool)
+	- TLS data is visible across all funciton invocation, not a local variable
+	- Similar to static data
+		- TLS is unique to each thread
+- Scheduler Activation
+	- ManyToMany and Two level models require communication to maintain appropriate number of kernel
+		threads allocated to application
+	- Coordination allows the number of kernel threads to be dynamically adjusted to ensure performance
+	- Scheduler activation provide upcalls
+		- Communication mechanism from kernel to upcall handler in thread library
+	- Typically use an intermediate data structure between user and kernel threads - (LWP)
+		- Appears to be a virtual processor which process can schedule user thread to run
+		- Each LWP attached to kernel thread
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

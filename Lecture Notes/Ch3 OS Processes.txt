@@ -1,0 +1,238 @@
+PROCESSES
+
+
+OBJECTIVES- 
+
+- Introduce a notion of a process 
+	- A program in execution which forms all basis of computing
+- Describe the various features of processes, including
+	- Scheduling, creation/termination and communicaiton
+- Explore interprocess communication using shared memory and message passing
+
+
+PROCESS CONCEPT
+
+- An OS executes a variety of programs: Batch system(jobs) and Time shared system(user program or tasks)
+- Process: A program in execution
+- The status of current activity is represented by the value of the program counter and 
+	contents of processors registers
+- Memory layout of a process is splt into sections 
+	- Text section - executable/program code
+	- Data section - global variables 
+	- Heap section - memory that is dynamically allocated during program run time
+	- Stack section - temporary data storage when invoking functions
+		- function parameters, return addresses and local variables
+	- Current activity including program counter and processor registesr
+
+		- Heaps and stack sections can shrink and grow dynamically during program execution
+		- When each function is called, an activation record containing function parameters
+			local variables and return address is pushed onto the stack. 
+		- The heap will grow as memory is dynamically allocated and shrink when meory is returned
+		- Both grow toward one another, but the OS will never let them overlap one another
+	- A program is a passive entity, like a file containing a list of instructions. 
+	- A process is an active entity, with a program counter specfying the next instructions to execute
+		and set of associated resources. 
+		- Two techniques for loading files are double clicking an icon representind the executable 
+			file and entering name of executable file in CLI
+	- Processes may be associated with the same program, but they are two separate execution sequences
+		- Different copies of the same program, data/heap/stacks are also vary
+
+PROCESS STATE
+- As a process executes, it changes state
+- The state of a process is defined in part by the current activity of that process
+- A process may be in one of the following states: 
+	- New, running, waiting, ready or terminated 
+	- Only one process can run at a time, but many processes can be ready and waiting
+
+PROCESS CONTROL BLOCK
+- Each process is represented in the operating system by a Process Control Block(PCB) also called a 
+	Task Control Block
+- Serves as the repository for all the data needed to start/restart a process along with some accounting data
+- Contains many pieces of information:	
+	- Process state: state may be new, running, waiting, ready or terminated 
+	- Program counter: counter indicates the address of the next instruction to be executed
+	- CPU registers: include accumulators, index registers, stack pointer, general pointers and any
+		condition code information. This state information must be saved when interrupt occurs
+		To allow processes to be continued correctly 
+	- CPU scheduling information: includes a process priority, pointers to scheduling queues and 
+		other scheduling parameters
+	- Memory management information: inclues value of base and limit registers, page tables or
+		segment tables depending on memory system used by OS
+	- Accounting information: Includes amount of CPU and real time used, time limits, account numbers
+		job/process numbers, etc
+	- I/O status information Includes list of I/O devices allocated to process, list of open files, etc
+
+THREADS
+- A single thread of instruction is being executed and process can only perform one at a time
+- Nowadays, multiple threads of execution allows the user to perform more than one process at a time
+- Beneficial on multicore systems, where multiple threads can run in parallel
+
+
+
+PROCESS SCHEDULING
+- Need to have some processes running at all times to maximize CPU utilization. The goal is to switch a CPU 
+	core among processes so frequently that users can interact with each program while it is running.
+- The process scheduler makes it happen
+	- It selects an available process for program execution on a core
+	- Each CPU core can run one process at a time. 
+	- If there are more processes than cores, than any extras will have to wait their turn
+	- The number of processes in memory is known as degree of multiprogramming
+	- Most processes are either I/O bound or CPU bound
+		- I/O Bound spends most of its time doing I/O rather than computations
+		- CPU Bound uses more time doing computations and generates little I/O requests
+
+SCHEDULING QUEUES
+- As processes enter the system, they are put into a ready queue, where they are ready and waiting to be 
+	executed
+- Queue is stored as a linked list
+	- ready queue header contains pointers to  the first PCB in list and each PCB contains a pointer
+		to the next PCB in ready queue
+- System also includes other queues. 
+- When a process is allocated a CPU core, it executes, terminates, interrupted or waits. 
+- If a process has to wait for an available resource, it is placed in a wait queue
+- Queueing Diagram
+	- Ready queue and wait queue
+- A new process is initially placed in ready queue and hangs out there until it is selected to be dispatched
+- Once dispatched:
+	- Process could issue an I/O request and placed in an I/O wait queue
+	- Creates a new child process and be placed in wait queue while it waits for the child's termination
+	- Process could be removed forcibly from the core as a result of an interrupt and be put back
+		in ready queue
+	- The processes switch from waiting state to ready state and then put in ready queue
+	- Cycle is continued until it terminates, when it is removed from all queues and PCB has its 
+		resources deallocated
+
+OPERATIONS ON PROCESSES
+- System must provide mechanisms for process creation, termination, etc
+
+
+PROCESS CREATION
+- Parent process create children processes which produce other processes, eventually forming a tree
+- Processes are identified and managed via a process identifie (PID)
+	- Can be used for indexing
+- Resource sharing options:
+	- Parent and child share all resources
+	- Children share subset of parents resources
+	- Parent and child share no resources
+- Execution options: 
+	- Parent and child execute concurrently
+	- Parent waits until child terminates
+- Address-Space possibilities:
+	- Child process is a duplicate of parent (same data and program)
+	- Child process has a new program loaded into it
+	
+	UNIX EXAMPLES
+		- fork() system call creates new process
+		- exec() system call used after a fork() to replace the process memory space with new program
+
+
+
+PROCESS TERMINATION
+- Process executes last statement and then asks the OS to delete it using the exit() system call
+	- Returns status data from child to parent(using wait())
+	- Process's resources are deallocated by OS
+- Termination can also ocur by TerminateProcess() in Windows
+- Can only be invoked by parent process that is to be terminated
+- Prevents user or misbehaving application to do it
+- Parent has to know identities of children if it's to terminate them
+- Parent can terminate a child using the abort() system call
+	- When one process creates a new one, idendity of child is passed to parent
+	- Parent can terminate a child due to:
+		- Child has exceeded usage of its resources that have been allocated
+			- Parent needs the ability to inspect state of children
+		- Task assigned to child is no longer required
+		- Parent is exiting and OS doesn't allow child to exist if parent terminates
+			- Referred to cascading termination that is initiated by OS
+			
+	- Parent can wait for termination of child process by using wait() system call
+		- wait() system call passes a parameter that allows parent to obtain exit status of child 
+			- The call returns status informatio and pid of terminated process
+				- pid = wait(&status)
+	- exit() is called directly or indirectly by C runtime library
+- When a process is terminated, resources are deallocated
+- Entry in process table must remain until parent calls wait() because process table contains process 
+	exit status
+- A process that has been terminated, but its parent has not called wait() is called a zombie process
+	- All processes exist in this state briefly
+- If wait() is not called and is terminated, the child is now an orphan
+
+
+INTERPROCESS COMMUNICATION
+- Processes within a system may be independent or cooperating
+- Cooperating process can affect or be affected by other processes, including sharing data
+- Reasons for cooperating:
+	- information sharing: allow applications to share same piece of information
+	- computation speedup: breaks up a task into subtasks and run processes in parallel
+	- modularity: divide the system in separate process or threads
+	- convenience
+- Cooperation requires an interprocess communication(IPC) mechanism that allows them to send/recieve data
+	- Two models:
+		- Shared Memory
+			- Region of memory is shared by cooperating processes
+			- Information is exhcanged by reading/writing data to shared region
+			- Faster than message passing
+			- System calls only required to establish shared memory regions
+			- All accesses are treated as routine memory access 
+			- No assistnace from kernal is required 
+		- Message Passing
+			- Usefor for exchanging small amounts of data, no conflicts need to be avoided
+			- Implemented using system calls and require more time consuming task of kernal 
+				intervention
+	Producer Consumer Problem
+		- Producer process produces information that is consumed by a consumer process
+			- Ex. Compiler prodices assembly code that is consumed by assembler
+			- Can be fixed by allowing producer/consumer to run concurrently
+				- Need available buffer of items to be consumed
+				- Must be synchronized
+			Buffer options
+			- Unbounded buffer places no practical limit on the size of the buffer
+			- Bounded buffer assumes that there is a fixed buffer size
+
+SHARED MEMORY
+- An area of memory shared among the processes that wish to communicate
+- The communication is under the control of the users processes, not the OS
+- Major issue is to provide mechanisms that will allow the user process to synchronize their actions when
+	they access shared memory
+
+MESSAGE PASSING
+- OS provides the means for processes to communicate with one another
+- Mechanism for processes to communicate and to synchronize their actions
+- Message system- proceeses communicate with each other without resorting to shared variables
+- ex. online chat room
+- Interprocess communication provides two operations:
+	- send(message)
+	- receive(message)
+- Message size is fixed or variable
+	- If fixed only, system level implementation is straightforward
+		- Also makes programming more difficult
+	- If variable only, system level implementation is complex
+		- Makes programming easier
+- For messages to send, a communication link must exist 
+	- Implementation of communication link:	
+		- Direct/indirect communication
+		- Synchronous/asynchronous communication
+		- Automatic/explicit buffering
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

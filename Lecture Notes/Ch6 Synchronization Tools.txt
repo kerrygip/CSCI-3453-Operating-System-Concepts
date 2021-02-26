@@ -1,0 +1,243 @@
+PROCESS SYNCRHONIZATION
+
+Coordination has to be accounted for 
+
+-fyi count ++ in machine language is 
+	register = count
+	register = register +1
+	count = register
+
+CONCURRENCY
+- Multiple threads or processes whose execution overlap in time
+	- Multiprogramming:
+		- Multiple processes execute on a single processor
+		- ex.
+			- process1, process 2, process3, process4 and 1 processor
+			- Scheduled in random order
+			- p1, p2, p4, p2, p3, p1 (Defined by scheduling algorithm, burst time, I/O need)
+
+	- Multiprocessing:
+		- Programs execution on separate processors in parallel (Tight coupling)
+		- ex.
+			- cpu1  and cpu2 (dual core)
+			- track1 for cpu1, track2 for cpu2
+			- shares memory, data files, etc between cpu
+	- Distributed Processing:
+		- Programs execute on separate machines connected via a network(loose couplling)
+		- ex.
+			- Computer1 (has own cpu, memory, storage)
+			- Computer2 (has own cpu, memory and storage)
+			- Connected by lan to network
+	- Programs are randomly interleaved in time
+
+	- Can have issues with Race Condition
+		- Several processes access and manipulate the same data concurrently and outcome
+		of execution depends on particular order the access takes place
+		- CONDITION: 
+			- Ensure only one process at a time can be manipulating the variables and
+			so the process has to be synchronized in some way
+
+CRITICAL SELECTION PROBLEM
+- Critical section is where each process has a code segment in which the shared data is accessed
+- Problem ensure that when one process is executing in its critical section, no other process is allowed
+	to execute in its critical section
+- N Processes all competing to use some shared data
+- Critical section problem is to design protocal to solve this
+	- Designes a protocol so that each of the processes can synchronize their activity so they can
+	cooperatively share data 
+	- Each process has to request permission to enter critical section
+		- Start is called entry section
+		- Followed by exit section
+		- Remainder section is remaining code
+			ex. while(true){
+				entry section
+					critical section
+				exit section
+					remainder section
+				}
+	- Requirements:
+		- Mutual exclusion:
+			- If process p1 is executing in critical section, then no other processes
+				can be executing in their critical sections
+		- Progress:
+			- If no process is executing in critical section and some process want to enter
+				critical section, then only those that are not executing in remainder
+				sections can participate in deciding which will enter critical section next
+			- Cannot be postponed indefinitely 
+		- Bounded Waiting:
+			- There exists a bound/limit on the number of times that a process can enter
+				critical section after process has made a request to enter its critical
+				section and before that request is granted 
+- Assumes each process is executing at nonzero speed, but no idea on relative speed 
+- Two approaches to handle critical sections in OS are:
+	- Preemptive kernels :
+		- Allows a process to be preempted while running in kernel mode
+	- Nonpreemtive kernels
+		- Does not allow a process to be preempted
+		- Kernel mode process will run until it exits kernel mode, blocks or yields control to CPU
+		- Free from race conditions
+
+CRITICAL REGIONS
+- Kernel code is subject to many possible race conditions
+	- ex. Two files opened up at the same time and separate updates could trigger race condition
+	- Structures for maintaining memory allocation
+	- Process list
+	- Interrupt handling
+- Requirements to avoid race conditions:
+	- 1. No two processes may be simultaneously inside their critical regions
+	- 2. No assumptions may be made about speeds or number of CPUs
+	- 3. No processes running outsdie of its critical region may block other processs
+	- 4. No process should have to wait forever to enter its critical region
+
+ALGORITHMS
+
+Algorithm1
+- Shared global variables
+	- int turn = 0
+	- When a code goes into critical region, it looks at turn 
+	- If turn is same as process number, then it can go into critical section 
+	- ex. do{
+		while (turn != i);
+		critical section;
+		turn = i++
+		non critical section  }
+		while (true);
+	- Is it mutually exlusive?
+	- Progress?
+
+PETERSON's SOLUTION
+- Two process solution
+- Only one entry has a chance to enter the critical section at a time 
+	- Share two variables:
+		- int Turn;
+		- Bool flag[2]
+		while (true) {
+			flag[i] = true;
+			turn = j;
+			while (flag[j] && turn == j);
+				/* critical section */
+			flag[i] = false;
+				/*remainder section */ }
+	- Turn variable indicates whose turn it is to enter the critical section
+	- Flag array is used to indicate if a process is ready to enter critical section
+		- flag[i] = true 
+			- Process is ready
+	- To prove that it is correct:
+		- 1. Mutual exclusion is preserved
+		- 2. Progress requirement is satisfied
+			- Can have a problem if stuck in loop
+			- while (flag[j] && turn == j);
+				if process j is not ready then flag[j] == false
+				if P[j] is ready then flag[j] == true
+				and either P[i] or P[j] can continue
+				P[i] is blocked only when P[j] is in critical section
+		- 3. Bounded waiting requirement is met
+- Will not work on modern computer architectures because compilers/processors may reoder read/write operations
+	and they have no dependencies
+	- For a single threaded application, the reordering is immaterial as far as program correctness
+	is concerned and final values are consistent with what is expected 
+		- like balancing a checkbook, order of credit/debit doesnt matter since balance at end is same
+	- For multithreaded application with shared data, reordering of instructions can give 
+		inconsistent results
+
+SEMAPHORE
+- Synchronization tool that provides sophisticated ways(than Mutex locks) for process to syncrhonize their 
+	activities
+	- Mutex is the simplest synchronization tool
+- Semaphore S:
+	- integer variable
+- Can only be accessed via two indivisible(atomic) operations
+	- wait() and signal()
+		- wait was called P and signal was called V
+		- Signal() = 
+			signal(S){
+			s++; }
+		- Wait() = 
+			wait(S){
+				while (S<=0); // busy wait
+				S--; }
+
+	
+
+Usage
+- Counting semaphore:
+	- ranges over unrestricted domain
+	- Used to control access to a given resource consisting of finite number of instances
+	- Semaphore is initialized to number of resources available
+	- Each process that wants to use a resouce performs a wait() on the semaphore
+		- This decrements the count
+	- When a process releases a resource, it performs a signal()
+		- This increments the count
+	- When count goes to 0, all resources are used
+		- A process that wants to use a resource has to wait until count goes over 1 
+- Binary semaphore:
+	- ranges between 0-1
+	- Similar to mutex locks
+	- On systems that don't provide mutex locks, binary semaphores can be used instead for mutual
+		exclusion
+- Can solve syncrhonization problems
+- Consider p1 and p2 that require s1 to happen before s2 (semaphore)
+	- P1:
+		S1;
+		signal(synchronization);
+	- P2:
+		wait(syncrhonization);
+		S2;
+- Can implement a counting semaphore S as binary semaphore
+
+
+SEMAPHORE IMPLEMENTATION		
+- Must guarantee that no two processes can execute the wait() and signal() on the same semaphore at the 
+	same time
+- Implementation becomes the critical section problem where the wait and signal code are placed in
+	critical section
+	- Could have busy waiting in critical section implementation
+	- Implementation code is short
+	- Little busy waiting if critical section rarely occupied
+- Applications can spend a lot of time in critical sections so this is not a good solution
+
+SEMAPHORE IMPLEMENTATION WITH NO BUSY WAITING
+- With each semaphore, there is an occasional waiting queue
+- Each entry in a waiting queue has two data items:
+	- value( of type int)
+	- pointer to the next record in the list
+
+- wait(semaphore *s){
+	s -> value --;
+	if (s->value <0){
+		add this process to s->list;
+		block(); }
+	}
+
+- signal(semaphore *s){
+	s -> value ++;
+	if (s->value <= 0){
+		remove a process P from s->list;
+		wakeupP); }
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
