@@ -1,0 +1,311 @@
+DEADLOCKS
+
+THE DEADLOCK PROBLEM
+	- A set of blocked processes each holding a resource and waiting to acquire a resource held by
+		another process in the set
+	- Every process in a set of processes is waiting for an event that can be caused only by another
+		process in the se t
+	
+		- ex. System has two tape drives
+			- P1 and P2 each hold one tape drive and each needs another one 
+		- ex Bridge Crossing Example
+			- Traffic only in one direction
+			- Each section of a bridge can be viewed as a resource
+			- If a deadlock occurs, it can be resolved if a car backs up 
+			- Several cars may have to backup if deadlock occurs
+			- Starvation is possible 
+
+	- Rules are needed to prevent deadlock
+
+LIVELOCK
+	- Another form of liveness failure
+	- Similar to deadlock
+		- Prevents two or more thread sfrom proceeding but the threads are unable to proceed
+			for different reasons
+	- Deadlock occurs when every thread is blocked waiting for another event, 
+	- Livelock occurs when a thread continuously attempts an action that fails 
+		- Similar to two people crossing paths -> <-
+			- both move to the right side together, try again, both move to left side together
+		- Not blocked, but not making progress
+	- Can be avoided by performing a backoff transition period where it doesn't try to move forward
+		until a certain amount of time has passed
+	- Less common than deadlock but still annoying
+	- Only occurs under specific scheduling circumstances
+
+SYSTEM MODEL
+	- Systems contain finite number or resources to be distrubuted to competing threads 
+		- Resource types R1, R2, .. Rm
+			- CPU cycles, memory space, I/O devices
+		- If a system has 4 CPUs then resource type CPU has 4 instances 
+		- If a thread requests an instance of resource type, the allocation of ANY instance type 
+			should satisfy the request
+			- If not then the instances are not identical and resouce type classes have not 
+				been defined properly
+	- Each resource type Ri has Wi instances
+		- A resource type has some number of identical resources
+	- A thread must request a resource before using it and must release it after using it
+	- A thread may request as many resources as it requires to carry out its task
+	- Each process utilizes a resouce as following normal sequence
+		- Request (may need to wait) - The request for a resource cannot be granted immediately
+		- Use - Thread can operate on resource
+		- Release - Thread releases resource
+
+DEADLOCK CHARACTERIZATION
+	- Deadlock can arise if 4 conditions hold simultaneously:
+		- Mutual exclusion: 
+			- Only one process at a time can use a resource
+		- Hold and Wait:
+			- A process holding at least one resource is waiting to acquire additional 
+			resources held by other processes
+		- No Preemption:
+			- A resource can be released only voluntarily by the process holding it. 
+			 only after that process has completed its task
+		- Circular Wait:
+			- There exists a set {P0, P1, P2 ... Pn} of waiting processes such that P0 is 
+			waiting for a resource held by P1, P1 is waiting on a process held by P2, etc
+	- All 4 conditions must hold for deadlock
+	- Unresolvable circular wait is the definition of deadlock 
+
+
+RESOURCE-ALLOCATION GRAPH
+	- A set of Vertices V and a set of Edges E:
+		- V is partitioned into two types: 
+			- P = {P1, P2, .. Pn}, The set consistent of all the processes in system
+				- change out P for T(Threads)  and processes == nodes 
+				- n vertices of type p
+			- R = {R1, R2,... Rn}, The set consistent of all the resources in system
+				- m vertices of type R
+		- Edges can be: 
+			- Are going to be directed  
+			- Request Edge 
+				- Directed Edge: Pi -> Rj
+			- Assignment Edge
+				- Directed Edge Rj -> Pi
+
+	- Processes are going to be represented with a
+		- Circle
+	- Resource type with 4 isntances are going to be represented with a
+		- square or rectangle with that shows how many instances inside of it 
+	- Pi requests instance of Rj
+		- Process circle with arrow pointing towards square, process asking for resource
+	- Pi is holding an instance of Rj
+		- Resource square with arrow ending at process circle, process has a resource, needs 
+		to return later 
+
+6:30 part 2??
+
+METHODS FOR HANDLING DEADLOCKS
+	- Ensure that a deadlock never occurs (Deadlock Prevention)
+		- Make sure at least 1 of the 4 conditions fail
+	- Deadlock Avoidance
+		- Processes provide information regarding their resource usage
+		- Make sure that the system always stays at a safe state 
+	- Recover if the system enters a deadlock state
+		- Deadlock detection
+		- Recovery
+	- Ignore the deadlock problem and pretend it never happened lolol
+		- Restart the system manually 
+		- System may be frozen temporarily too though
+
+DEADLOCK PREVENTION
+	- Restraing the ways requests can be made
+	- Mutual exclusion
+		- Not required for sharable resources 
+		- Must hold for non sharable resources
+			- Read only files -> no mutual exclusion needed , everyone can access same time 
+			- Printer - > mutual exclusion needed , one person at a time 
+	- Hold and Wait
+		- Must guarantee that whenever a process requests a resource, it does not hold any other 
+		resources
+		- Requires processes to request and be allocated all its resources before it begins 	
+		execution or allow process to request resources only when the process has none allocated
+		to it 
+		- Low resource utilization, starvation possible 
+	-ex. A process: 
+		- Copy data from tape drive into disk file
+		- Sort disk file
+		- Print results to printer
+			- Solution 1:
+				- Requests all resources at the beginning (tape driver, disk, printer)
+			- Solution 2:
+				- Requests a tape drive and disk
+				- Release both tape  drive and disk
+				- Request a disk and printer
+	- Preemption
+		- If a process that is holding some resources and requests another resource that cannot
+		immediately be allocated to it, then all resources currently being held are released
+		- Preempted resources are added to the list of resources for which the process is waiting
+		- Process will be restarted only when it can regain its old resources as well as the new
+		ones that it is requesting
+		- Only applicable to resources whose states can be saved and restored 
+			- Preemtible Resources
+			- CPU Registers, memory -> preemptible
+			- Printer, tape drives - > non preemptible 
+	- Circular Wait
+		- Impose a total ordering of all resource types and require that each process requests
+		resources in an increasing order of enumeration
+		- If a process requests a resource Rj then all the resources it has currently of which
+		enumeration order is higher than F(Rj) have to be released (increasing order) 
+	
+	- Critisism against deadlock prevention
+		- Low device utilization
+		- Reduced system throughput 
+
+DEADLOCK AVOIDANCE
+	- Motivation
+		- Deadlock prevention algorithms cause low device utilization and low throughput
+	- Provides additional information about the resource request ahead of time
+		- Each process declares the maximum number of resource of each type 
+	- Dynamically examines the resouce allocation state to avoid circular cycle
+		- Checks number of available and allocated resources
+		- Maximum demands of all processes
+	- Resource allocation state is defined by the number of available and allocated resources and the
+		maximum demands of the processes 
+	- Algorithms:
+		- Single instance of resource type
+			- Use resource allocation graph
+		- Multiple instance of resource type
+			- Use Bankers Algorithm 
+
+DEADLOCK PREVENTION VS DEADLOCK AVOIDANCE
+	- Prevention
+		- Restraining how requests can be made
+		- Ensuring that at least one of four necessary cconditions for deadlock cannot hold
+		- Low system utilization and reduce system throughput
+	- Avoidance
+		- Carefully allocating system resources
+		- Additional information about how resources are to be requested
+		- Ensures that a system will never enter an unsafe state 
+		- More practical 
+	
+SAFE STATE
+	- A state is safe is the system can allocate resources to each thread in some order and still
+	avoid a deadlock 
+	- A system is in a safe state only if there exists a safe sequence
+		- If all the reouces that a process needs that is not available, then it has to wait until
+		it can get its needed resource, complete its task and then terminate. This goes on a loop
+		for each process
+		- If no sequence exists, then the system state is unsafe 
+
+RESOURCE ALLOCATION GRAPH SCHEME
+	- Claim edge Pi -> Rj indicated that process Pj may request resource Rj
+		- Represented by dashed line
+	- Claim edge converts to request edge when a process requests a resource 
+		- Represented by solid line
+	- Request edge converted to assignment edge when the resource is allocated to process
+		- When a resource is released by a process, assignment edge is reconverts to claim edge
+	- Resources must be claimed a priori in the system 
+
+	- Suppose that process Pi requests a resource Rj
+		- The request can only be granted only if converting the request edge to assignment edge
+		does not result in the formation of a cycle in the resource allocation graph 
+
+BANKERS ALGORITHM
+	- Assumptions:
+		- Multiple instances
+		- Each process must claim priori claim maximum use
+		- When a process requests a resource, it may have to wait
+		- When a process gets all its resources, it must return them in a finite amount of time
+	- Let n = number of processes and m = number of resource types
+		- Available:
+			Vector of length m. If available [j] =k there are k instances of resource type Rj
+			available
+		- Max:
+			n x m matrix. If Max[i,j] = k then process Pi may request at most k instances of 
+			resource type Rj
+		- Allocation
+			n x m matrix If Allocation[I,j] = k then Pi is currently allocated k instances
+			of Rj
+		- Need
+			n x m matrix. If Need[i,j] = k then Pi may need k more instances of Rj
+			to complete the task
+		- Need[i,j] = Max[i,j] - Allocation[i,j]
+			
+	- Data Structures Vary over time (in size and value)
+		- New process starts and existing process ends 
+
+
+SAFETY ALGORITHM	
+	- 1. Let Work and Finish be vectors of length m and n respectively. Initialize
+		Work = Available
+		Finish[i] = false for i =1 
+	- 2. Find an i such that both:
+		Finish[i] = false
+		Need[i] <= Work
+		if no such i exists, go to step 4
+	- 3. Work = Work + Allocation[i]
+		Finish[i] = true	
+		Go to step 2
+	- 4. If Finish[i] == true for all i then the system is in a safe state 
+
+RESOURCE REQUEST ALGORITHM FOR PROCESS Pi
+	- Request[i] = request vector for process Pi
+		- If Request[i][j] = k then process Pi wants k instances of resource type Rj
+	- 1. If Request[i] <= Need[i], go to step 2
+		- Else raise error condition since process exceeds maximum claim
+	- 2. If Request[i] <= Available, go to step 3,
+		- Else Pi must wait since resources arent available
+	- 3. Pretend to allocate requested resources to Pi by modifying the state as follows:		
+		- a. Available = Available - Request[i]
+		- b. Allocation[i] = Allocation[i] + Request[i]
+		- c. Need[i] = Need[i] - Request[i]
+	- 4. If Safe -> Resources are allocated to Pi
+		- Else -> Pi must wait until the old resource allocation state is restored 
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
