@@ -1,0 +1,193 @@
+1.1 What are the three main purposes of an operating system?
+Manages a computer’s hardware
+Provides a basis for application programs and act as intermediary
+Allocate resources to programs(CPU, Memory, I/O, storage, etc)
+
+
+1.2 We have stressed the need for an operating system to make efficient use
+of the computing hardware. When is it appropriate for the operating
+system to forsake this principle and to “waste” resources? Why is such
+a system not really wasteful?
+appropriate to waste resources if we can improve ease of use
+
+1.3 What is the main difficulty that a programmer must overcome in writing
+an operating system for a real-time environment?
+Optimize time and resource allocation, It also needs to run according to schedule
+
+1.4 Keeping in mind the various definitions of operating system, consider
+whether the operating system should include applications such as web
+browsers and mail programs. Argue both that it should and that it
+should not, and support your answers.
+For:convenience 
+Against: Non customizable
+
+1.5 How does the distinction between kernel mode and user mode function
+as a rudimentary form of protection (security)?
+The mode bit determines the current mode 0 for kernel and 1 for user. 
+The system will switch back and forth depending on what sort of service is being executed. 
+Having the two modes protects the OS from the user and the user from itself 
+Some instructions can cause harm to the system. So the programmer called them privileged instructions that can only be instructed in kernel mode. 
+If activated in user mode, the hardware will trap it 
+
+
+1.6 Which of the following instructions should be privileged?
+a. Set value of timer. - X
+b. Read the clock.
+c. Clear memory. - X
+d. Issue a trap instruction.
+e. Turn off interrupts. - X
+f. Modify entries in device-status table. - X
+g. Switch from user to kernel mode. 
+h. Access I/O device. - X
+
+
+1.7 Some early computers protected the operating system by placing it in
+a memory partition that could not be modified by either the user job or
+the operating system itself. Describe two difficulties that you think could
+arise with such a scheme.
+OS can't be modified or updated 
+Critical data would be accessible to unauthorized users 
+
+
+1.8 Some CPUs provide for more than two modes of operation. What are two
+possible uses of these multiple modes?
+Kernal - for hardware 
+User - for us 
+Privileged - not as open as user, not as tight as kernal
+Virtualization - additional use of OS or any other third program
+
+1.9 Timers could be used to compute the current time. Provide a short
+description of how this could be accomplished.
+Saved state for a certain time, interrupts for system calls, using an internal timer that matches the global clock
+
+1.10 Give two reasons why caches are useful. What problems do they solve?
+What problems do they cause? If a cache can be made as large as the
+device for which it is caching (for instance, a cache as large as a disk), why not make it that large and eliminate the device?
+Solve: transfer speed, fast in general
+Cause: Inconsistent, cache stored in one level is not the same as in another level, can also be expensive for a large cache 
+
+
+
+1.11 Distinguish between the client–server and peer-to-peer models of distributed systems.
+client server - clients send requests to servers to execute action. It is more secure, scalable and easy to maintain
+peer to peer - all connected systems are called peers and may act as a client or server depending on the service. this is more faster, simple and less expensive. As it grows
+      bigger, it is harder to maintain
+
+1.12 How do clustered systems differ from multiprocessor systems? What is
+required for two machines belonging to a cluster to cooperate to provide
+a highly available service?
+clustered - combining multiple computers into a single system to perform a task. - less coupled. cluserted system communicates using messages,
+Multiprocessor - a single computer with multiple CPU's,  multi communicates using shared memory. 
+
+clustered systems are replicated and constantly updated. When one machine fails, the other takes over functionality 
+
+1.13 Consider a computing cluster consisting of two nodes running a
+database. Describe two ways in which the cluster software can manage
+access to the data on the disk. Discuss the benefits and disadvantages
+of each.
+Assymetric - one node does the work while others are on standby and activate if the one fails. 
+  pro - system wont stop if it fails
+  con - not efficient since only one is working if there are like 20 
+
+Symmetric - parallel clustering - multiple nodes can read the data 
+  pro - more efficient
+  con - need special software 
+
+1.14 What is the purpose of interrupts? How does an interrupt differ from a
+trap? Can traps be generated intentionally by a user program? If so, for
+what purpose?
+An interrupt is a hardware‐generated change‐of‐flow within the 
+system. An interrupt handler is summoned to deal with the cause of the 
+interrupt; control is then returned to the interrupted context and instruction. 
+A trap is a software‐generated interrupt. An interrupt can be used to signal 
+he completion of an I/O to obviate the need for device polling. A trap can be 
+used to call operating system routines or to catch arithmetic errors.
+
+1.15 Explain how the Linux kernel variables HZ and jiffies can be used to
+determine the number of seconds the system has been running since it
+was booted.
+HZ - specifices frequency of timer interrupts
+Jiffies - represent number of timer interrupt that have occursed since booting
+
+1.16 Direct memory access is used for high-speed I/O devices in order to
+avoid increasing the CPU’s execution load.
+a. How does the CPU interface with the device to coordinate the
+transfer?
+writes value to registers then it receives a command from CPU
+
+b. How does the CPU know when the memory operations are complete?
+interrupts
+
+c. The CPU is allowed to execute other programs while the DMA
+controller is transferring data. Does this process interfere with
+the execution of the user programs? If so, describe what forms of
+interference are caused.
+unable to issue memory operations at peak speed
+
+EX-1
+1.17 Some computer systems do not provide a privileged mode of operation
+in hardware. Is it possible to construct a secure operating system for
+these computer systems? Give arguments both that it is and that it is
+not possible.
+possible: restricted access to software, no low level kernal language
+not possible: no kernal mode, easily hackable
+
+1.18 Many SMP systems have different levels of caches; one level is local to
+each processing core, and another level is shared among all processing
+cores. Why are caching systems designed this way?
+Different levels of speed and size
+
+1.19 Rank the following storage systems from slowest(1) to fastest(7):
+a. Hard-disk drives - 3
+b. Registers - 6
+c. Optical disk - 2
+d. Main memory -5
+e. Nonvolatile memory - 4
+f. Magnetic tapes - 1
+g. Cache - 7
+
+1.20 Consider an SMP system similar to the one shown in Figure 1.8. Illustrate
+with an example how data residing in memory could in fact have a
+different value in each of the local caches.
+processor 1 Data A is read from main memory to cache
+processor 2 Data A is read from main memory to cache
+processor 1 updates Data A with a different data
+
+- proccessor 1 has a different version of Data A in its cache than processor 2
+
+1.21 Discuss, with examples, how the problem of maintaining coherence of
+cached data manifests itself in the following processing environments:
+a. Single-processor systems - memory is updated when a processor issues update
+b. Multiprocessor systems  - memory updates in cache have to be synced across processors 
+c. Distributed systems - synced caches do not matter, but consistency problems can happen
+
+
+1.22 Describe a mechanism for enforcing memory protection in order to
+prevent a program from modifying the memory associated with other
+programs.
+using base and limits registers and performing  checks for memory access
+
+1.23 Which network configuration—LAN or WAN—would best suit the following environments?
+a. A campus student union - LAN
+b. Several campus locations across a statewide university system - WAN
+c. A neighborhood - either LAN/WAN, preferably WAN
+
+
+1.24 Describe some of the challenges of designing operating systems for
+mobile devices compared with designing operating systems for traditional PCs.
+less storage, manage power consumption, less processing power
+
+1.25 What are some advantages of peer-to-peer systems over client–server
+systems?
+better for transfer, nodes can act as client or server, easy install, low cost, more reliable
+
+1.26 Describe some distributed applications that would be appropriate for a
+peer-to-peer system.
+data transfer(discord, zoom, skype), small office
+
+EX-2
+1.27 Identify several advantages and several disadvantages of open-source
+operating systems. Identify the types of people who would find each
+aspect to be an advantage or a disadvantage.
+advantage: peer review, build on other ideas, better quality, less expensive
+disadvantage: bad for competition 
