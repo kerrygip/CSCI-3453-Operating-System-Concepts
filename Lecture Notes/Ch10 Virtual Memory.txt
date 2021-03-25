@@ -1,0 +1,259 @@
+VIRTUAL MEMORY 
+	- Involves the separation of logical memory as perceived by developers from physical memory
+	- It is a technique that allows the execution of processes that are not completely in memory. 
+	- Major advantage is that programs can be larger than physical memory 
+	- It abstracts main memory into an extremely large uniform array of storage, separating logical
+		memory as viewed by the programmer from physical memory
+	- Virtual memory also allows processes to share files and libraries and to implement shared memory
+	- Provides mechanism for process creation
+	- Decrease in performance if used carelessly
+
+	BACKGROUND
+	
+	- Code needs to be in memory to execute, but entire program rarely used 
+		- Dont have to load Error code, unusual routines, large data structures
+	- Entire program code not needed at same time
+		- Consider ability to execute partially- loaded program
+		- Program no longer constrained by limits of physical memory
+		- Each program takes less memory while running 	
+			- More programs run at same time
+			- Increase CPU utilization and throughput with no increase in response time or
+				or turnaround time
+			- Less I/O needed to load or swap programs into memory
+				- Each user program runs faster 
+	- Virtual address space - Logical view of how process is stored in memory
+		- Up to Memory Management Unit (MMU) to map logical pages to physical page frames in memory
+		- Address usually starts at 0, contiguous addresses until end of space
+		- Physical memory is organized in frames
+	- Virtual memory can be implemented through
+		- Demand Paging 
+
+DEMANG PAGING
+	- Could bring entire process into memory at load time 
+	- Or bring a page into memory only when it is needed
+	- Pages are only loaded when they are demanded during program execution 
+		- Less I/O needed, no unnecessary I/O
+		- Less Memory needed
+		- Faster response 
+	- Similar to paging system with swapping
+	- Page is needed -> reference to it
+		- Not in memory -> brings to memory
+	- Lazy swapper 
+		- Never swaps a page into memory unless page will be needed
+		- Swapper that deals with pages is a pager 
+
+	- BASIC CONCEPTS 
+		- If bit is set to "VALID" the associated page is both legal and in memory 
+		- If bit is set to "INVALID" the associated page is either not valid or in secondary storage
+		- If we are low on memory, then pager will tyr to guess which page will be used before
+			swapping out a page
+		- Need new MMU functionality to imprelement demand paging 
+		- If pages needed are already memory resident
+			- No difference from non demand paging
+		- If pages needed and not memory resident
+			- Need to detect and load the page from memory to storage
+				- Without changing program behavior
+				- Without programmer needing to change code
+			- If low on memory, then decide which page to swap out 
+
+PAGE FAULT
+	- Happens when a process tries to access a page that was not brought into memory
+	- If there is a reference to a page, first reference to that page will trap to operating system
+		- Page Fault
+	- 1. OS system looks at another table to decide:
+		- Invalid reference -> abort
+		- Valid reference, just not in memory, we page it in 
+	- 2. Find free frame
+	- 3. Swap page into frame via scheduled disk operation
+		- Schedule a secondary storage operation to read page into new frame
+	- 4. Reset tables to indicate page now in memory
+		- When storage read is complete, we modify, internal table kept with the process and 
+		page table to indicate that the page is now in memory
+	- 5. Set validation bit to v
+	- 6. Restart instruction that caused the page fault 
+		- Process can now access the page as normal 
+
+ASPECTS OF DEMAND PAGING
+	- Extreme case 
+		- Start process with no pages in memory
+		- OS sets instruction pointer to first instruction of process
+			- non memory resident -> page fault
+		- And for every other process pages on first access
+		- Pure demand paging: 
+			- Never bring a page into memory until it is required 
+	- A given instruction could access multiple pages 
+		- Multiple Page Faults
+	- Hardware support needed for demand paging
+		- Page table with valid/invalid bit
+		- Secondary memroy 
+			- Memory holds pages that are not present in main meory
+			- Known as a swap device
+		- Instruction restart 
+
+	- PERFORMANCE OF DEMAND PAGING
+		- Stages in Demand Paging
+		- 1. Traps to the operating system
+		- 2. Save the user registesr and process state
+		- 3. Determine that the unterrupt was a page fault
+		- 4. Check that the page reference was legal and determine the location of the page on desk
+		- 5. Issue a read from the disk to a free frame:
+			- Wait in a queue for this device until the read request is serviced
+			- Wait for the device seek and/or latency time
+			- Begin the transfer of the page to a free frame 
+		- 6. While waiting, allocate the CPU to some other user
+		- 7. Receive an interrupt from the disk I/O subsystem (I/O complete) 
+		- 8. Save the registers from proces state for the other user
+		- 9. Determine that the interrupt was from the disk
+		- 10. Correct the page table and other tables to show page is now in memory
+		- 11. Wait for the CPU to be allocated to this process again
+		- 12. Restore the user registers, process state and new page table and then resume 
+			interrupted instruction 
+		- Three major activities 
+			- 1. Service the interrupt
+				- Careful coding means several hundred instructions needed
+			- 2. Read the page
+				- Lots of time
+			- 3. Restart the process 
+				- Small amount of time 
+			- Page Fault Rate 0<= p <= 1
+				- if p = 0 : no page faults
+				- if p = 1 : every reference is a fault
+		- Effective Access Time (EAT):
+			- Demand paging affects performance of computer, to measure we use EAT
+			- EAT = (1-p)x memory access
+				+p(page fault overhead + swap page out + swap page in)
+			- EAT = (1-p)x memory access
+				+p(average page fault service time 
+PAGE REPLACEMENT
+	- If no frame is free, we find one that is not currently being used and free it. 
+	- If no frames are free, two page transfers are required
+		- one for page out and one for page in 
+	- Prevents over allocation of memory by modifying page fault service routing to include page replacement
+	- If we increase degree of multiprogramming then we are over allocating memory
+	- Use modify(dirty) bit to reduce overhead of page transfers
+		- Only modified pages are written to disk 
+	- 1. Find the location of desired page on disk
+	- 2. Find a free frame :
+		- 1. if there is a free frame, use it 
+		- 2. If there is no free frame, use paeg replacement algorithm to select victim frame
+		- 3. Write victim frame to disk if dirty
+	- 3. Bring desired page into newly free frame
+		- update page and frame tables
+	- 4. Continue the process by restarting the instruction that caused the trap
+		** note now two potentially page transfers for page fault 
+			- increasing EAT 
+
+PAGE AND FRAME REPLACEMENT ALGORITHMS
+	- Page replacement algorithm
+		- Want lowest page fault rate on both first access and re-access
+	- Frame allocation algorithm determines how many frames to give each process 
+	- Evaluate algorithm by running it on a particular string of memory references (reference string)
+		and computing the number of page faults on that string
+		- Can generate reference strings artificially by using RNG or can trace system and 
+			record the address of memory reference 
+		- String is just page numbers, not full addresses
+		- Repeated access to the same page does not cause a page fault
+		- Results depend on number of frames available 
+
+	- First In First Out Algorithm
+		- 3 frames ( 3 pages that can be in memory at a time per process)
+		- 15 page faults 
+
+	- Optimal Algorithm
+		- Replace page that will not be used for longest period of time
+		- 9 page faults 
+
+	- Least Recently Used (LRU) Algorithm
+		- Use past knowledge rather than future
+		- Replace page that has not been used in the most amount of time
+		- Associate time of last use with each page
+		- 12 faults - better than FIFO but worse than OPT
+		- Generall good algorithm and frequently used 
+
+		- Counter Implementation
+			- Every page entry has a counter
+				- Every time page is referenced through entry, copy clock into counter
+			- When a page needs to be changed, check counter to find smalled value
+				- Search through table as needed
+		- Stack Implementation
+			- Keep a stack of page numbers in a double link form:
+				- Page referenced: 
+					- Move it to the top	
+		- No search for replacement 
+
+ALLOCATION OF FRAMES
+	- Each process needs a minimum number of frames
+	- Maximum of course is total frames in the system
+	- Two major allocation schemes
+		- Fixed allocation
+		- Priority allocation 
+
+	- Fixed Allocation: 
+		- Equal allocation
+			- Split it all equally among processes 
+		- Proportional allocation 
+			- Allocate according to size of process
+	- Priority Allocation:
+		- Use a proportional allocation scheme using priorities over size
+		- If process P1 generates a page fault,
+			- Select for replacement frame from a process with lower priority number 
+
+GLOBAL VS LOCAL ALLOCATION
+	- With multiple processes competing for frames, we can classify page replcacement algorithms into 
+		categories:
+		- Global Replacement and Local Replacement.
+
+	- Global replacement:
+		- Allows a process to select a replacement frame from the set of all frames, even if that 
+		frame is currently allocated to some other process
+		- One process can take a frame away rfom another. 
+		- Process execution time can vary greatly
+		- Greater throughput so more common
+	- Local replacement:
+		- Requires that each process select only from its own set of allocated frames 
+		- More consistent per process performance
+		- Underutilized memory 
+
+
+THRASHING (10.6)
+	- When a process does not have enough frames, it will page fault. However, since all the pages are
+	currently being used, it will continue faulting. 
+	- High paging activity is called thrashing
+	- Thrashing is when a process is spending more time paging than executing
+	- Low CPU utilization
+	- OS thinking that it needs to increase the degree of multiprogramming
+	- Another process added to the system
+
+ALLOCATING KERNEL MEMORY (10.8)
+	- Treated differently from user memory
+	- Often allocated from free memory code
+		- Kernel requests memory for structures of varying sizes
+		- Some kernel memory needs to be contiguous instead of pages (like for I/O devices) 
+
+OTHER CONSIDERATIONS - PROGRAM STRUCTURE (10.9.5)
+	- Major decisions that we make for a paging system are the selections for replacement algorithm
+	and allocation policy
+	- Demand paging is designed to be transparent to user program
+	- User is unaware of paged nature of memory
+	- Selection of data and programming structures can increase locality and lower page fault rate
+	- Can also lower number of pages in working set
+	- Stack has good locality
+	- Hash table is designed to scatter references, producing bad locality
+	- Locality, speed, total number of memory references and total numbre of pages touched measure 	
+		efficiency
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
