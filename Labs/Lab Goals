@@ -1,0 +1,12 @@
+LAB 1 :
+
+The primary goal of this assignment is to understand and gain some familiarity with the
+system call interface in Unix Environment. In this assignment you will be using system
+call and proc filesystem to gather information about the system.
+
+
+Lab 2: 
+
+The primary goal of this lab assignment is to understand various CPU scheduling
+algorithms, gain some experience building a simulator for CPU scheduling algorithm and
+to evaluate their performances.
