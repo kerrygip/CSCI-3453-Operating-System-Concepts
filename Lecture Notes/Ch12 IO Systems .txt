@@ -1,0 +1,303 @@
+OVERVIEW:
+	- Two main jobs of a computer are:
+		- I/O
+		- Computing
+	- I/O Management is a major component of OS design and operation
+		- Important aspect of computer operation
+		- Various methods to control them
+	- Performance management
+	- Device Drivers encapsulate device details
+		- Present uniform device access interface to I/O Subsystems
+		- Treat I/O as stream of character or bytes 
+	- Lots of variety of I/O devices
+		- Storage, transmission, human interface 
+
+I/O HARDWARE
+	- Need ports to connect 
+	- Bus : Daisy Chain or Shared Direct Access
+		- PCI bus is common
+		- Expansion bus connects slow devices 
+	- Controller (host adapter) : Collection of electronics that can operate a port, bus or device
+		- A chip or portion of a chip in a computer that controls signals on wires of a port
+		- Somtimes integrated
+		- Sometimes separate circuit board (host adapter)
+		- Contains processor, microcode, private memory, bus controller, etc 
+	- Devices usually have registers where device driver places commands, addresses and data to 
+		write or read data from registesr after command execution
+		- Data in/data out registers, status register and control register
+		- Typically 1-4 bytes or FIFO buffer
+	- Devices have addresses, used by 
+		- Direct I/O instructions
+		- Memory mapped I/O
+			- Device data and command registesr mapped to processor address space
+			- Especially for large address spaces (graphics)
+
+POLLING
+	- For each byte
+		- 1. Host repeatedly reads busy bit until bit becomes clear
+			- Host is busy waiting or polling. In a loop reading status register until 
+			busy bit is clear
+			- Reasonable if device is fast, but inefficient otherwise
+			- CPU does not switch to other tasks
+				- If it misses a cycle, data will be overwritten/lost
+		- 2. Host sets write bit in command register and writes a byte into data out register
+		- 3. Host sets command ready bit
+		- 4. When controller notices command ready bit is set, it sets busy bit
+		- 5. Controller reads command register and sees write command. Reads data out 
+			register to get the bute and does the I/O to the device
+		- 6. Controller clears command ready bit, clears error bit in status register to 
+			indicate that the device I/O succeeded and clears busy bit to indicate finish
+
+Interrupts
+	- Most CPUs have two interrupt request lines:
+		- Maskable : Can be turned off by CPU before execution of critical instruction
+			sequences that must not be interrupted
+			- Used by device controllers to request service
+		- Non Maskable : Reserved for events such as unrecoverable memory errors
+	- Polling can happen in 3 instruction cycles
+		- Read status, logical and extract status bit, branch if not zero
+		- How to be more efficient if non zero?
+	- 1. CPU interrupt request line triggered by I/O device
+		- Checked by processer after each instruction
+		- CPU performs a state save and jumps to interrupt handler routine at fixed address
+	- 2. Interrupt handler receives interrupts
+		- Determines cause of interrupt, perform processing, state restore and executes a 
+			return from interrupt instruction
+		- Maskable to ignore or delay some interrupts 
+	- Interrupt vector to dispatch interrupt to correct handler
+		- Contect switch at start and end
+		- Based on priority
+		- Some non maskable
+		- Interrupt chaining if more than one device at same interrupt number 
+	- Interrupt mechanism also used for exceptions
+		- Terminate process, crash system due to hardware error
+	- Page fault executes when memory access error
+	- System call executes via trap to trigger kernel to execute request
+	- Multi CPU systems can process interrupts concurrently
+		- If OS designed to handle it
+	- Used for time sensitive processesing, frequent, must be fast
+
+DIRECT MEMORY ACCESS
+	- Used to avoid programmed I/O for large data movement
+	- Requires DMA controller
+	- Bypasses CPU to transfer data direction between I/O device and memory 
+		- Has its own porcessor
+	
+	- To initiate DMA transfer, OS/Host writes DMA command block into memory
+		- Block contains pointer to source of transfer and pointer to destination of transfer
+		- Keeps count of number of bytes to be transferred. 
+		- Lets it know if it should be read or write mode
+		- Writes location of command block to DMA controller
+		- Bus Mastering of DMA controller- Grabs bus from CPU
+			- Cycle stealing from CPU, but still more efficient
+		- When done, interrupts to signal completion
+	- Version that is aware of virtual addresses can be even more evvicient
+		- DVMA 
+	
+APPLICATION I/O INTERFACE
+	- I/O System calls encapsulate device behaviors in generic classes
+		- Library functions will make system calls to Kernel 
+		- Kernel will use device driver to send data to I/O device
+	- Device driver layer hides differences among I/O controllers from kernel
+		- Kernel will see I/O devices will have same behavior and system calls or API calls 
+		 that kernal will use 
+	- Each OS has its own I/O subsystem strucres and deivce driver frameworks 
+	- Devices vary in many dimensions
+		- Character stream or block
+		- Sequential or random access
+		- Synchronous or Asyncrhonous (or both)
+		- Shared or dedicated
+		- Speed of operation
+		- Read-Write, read only or write only
+
+CHARACTERISTICS OF I/O DEVICES
+	- Subtleties of device handled by device drivers
+	- Broadly I/O devices can be grouped by OS into:
+		- Block I/O
+		- Character I/O (stream)
+		- Memory - mapped file access
+		- Network sockets
+	- For direct manipulation of I/O device specific characteristics, OS provides an escape/back door
+		- Unix ioctl() call to send arbitrary bits to a device control register and data to
+		device data register
+
+BLOCK AND CHARACTER DEVICES
+	- Block devices include disk drives
+		- Commands include read, write, seek
+		- Raw I/O, direct I/O or file system access
+		- Memory mapped file access possible
+			- File mapped to virtual memory and clusters brought via demand paging
+		- DMA
+	- Character devices include keyboards, mice, serial ports
+		- Commands include get(), put()
+		- Libraries layered on top to allow line editing 
+	
+CLOCKS AND TIMERS
+	- Provide current time, elapsed time, timer
+	- Normal resolution about 1/60th second
+	- Some systems provide higher resolution timesr
+	- Programmable interval timer used for timings, periodic interrupts 
+
+NONBLOCKING AND ASYNCHRONOUS I/O
+	- Blocking: Process suspended until I/O completed
+		- Easy to use and understand
+		- Insufficient for some needs
+	- NonBlocking: I/O call returns as much as available
+		- User interface, data copy (buffered I/O)
+		- Implemented via multithreading
+		- Returns quickly with count of bytes read or written
+		- select() to find if data ready then read() or write() to transfer
+	- Asynchronous: Process runs while I/O executes
+		- Difficult to use
+		- I/O subsystem signals process when I/O completed
+VECTORED I/O
+	- Vectored I/O allows one system call to perform multiple I/O operations
+	- Ex. Unix readve() accepts a vector of multiple buffers to read or write from
+	- This scatter- gather method is better than multiple individual I/O calls
+		- Decreases context switching and system call overhead
+		- Some versions provide atomicity
+			- Avoids for example worry about multiple threads changing data as read/write
+			are occuring 
+
+KERNEL I/O Subsystem 
+	- Scheduling
+		- Some I/O request ordering via per device queue
+		- Some OSs try fairness
+		- Some implement Quality of Service(i.e IPQOS)
+	- Buffering: Store data in memory while transferring between devices
+		- To cope with device speed mismatch
+		- To cope with device transfer size mismatch
+		- To maintain "copy semantics"
+		- Double buffering : two copies of the data
+			- Kernel and user
+			- Varying sizes
+			- Full/Being processed and not full/ being used
+			- Copy on write can be used for efficiency in some cases 
+	- Caching: Faster device holding copy of data
+		- Always just a copy
+		- Key to performance
+		- Sometimes combined with buffering
+	- Spooling : Hold output for a device
+		- If device can serve only one request at a time
+	- Device reservation: provices excusive access to a device
+		- System calls for allocation/deallocation
+		- Watch for deadlocks
+
+
+ERROR HANDLING
+	- OS can recover from disk read, device unavailable, transiet write failures
+		- Retry a read or write
+		- Some systems more advanced
+			- Track error  frequencies, stop using device with increasing frequency
+			of retry-able errors
+	- Most return an error number or code when I/O request fails
+	- System error logs hold problem reports 
+
+I/O PROTECTION
+	- User process may accidentally or purposefully attempt to disrupt normal operation via
+		illegal I/O instructions
+		- All I/O instructions must be defined to privileged
+		- I/O must be performed via system calls
+			- Memory mapped and I/O port memory locations must be protected too 
+
+KERNEL DATA STRUCTURES
+	- Kernel keeps state infor for I/O components, including open file tables, network connections
+		character device state
+	- Many complex data structures to track buffers, memory allocation, "dirty" blocks
+	- Some use OO methods and message passing to implement I/O
+		- Windows use message passing
+			- Message with I/O information passed from user mode into kernel
+			- Message modified as it flows through to device driver and back to process 
+
+I/O REQUESTS TO HARDWARE OPERATIONS
+	- Consider reading a file from disk for a process:
+		- Determine device holding file
+		- Translate name to device representation
+		- Physically read data from disk into buffer
+		- Make data available to requesting process
+		- Return control to process 
+
+PERFORMANCE
+	- I/O is a major factor in system performance
+		- Demands CPU to execute device driver, kenel I/O code
+		- Context switches due to interrupts
+		- Data copying
+		- Network  traffic especially stressful 
+
+IMPROVING PERFORMANCE
+	- Reduce the number of context switches
+	- Reduce data copying
+	- Reduce interrupts by using large transfers, smart controllers, polling
+	- Use DMA
+	- Use smarter hardware devices
+	- Balance CPU, memory, bus and I/O performance for highest throughput	
+	- Move user mode processes/daemons to kernel threads 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		

@@ -1,0 +1,87 @@
+MASS STORAGE STRUCTURE
+
+	- There are many types of mass storage and are called non volatile storage (NVS)
+	- Particular ones lilke HDDs or NVM devices are specified 
+	- The bulk of secondary storage are called Hard Disk Drives(HDD) and NonVolatile Memory (NVM)
+
+
+	- HARD DRIVES
+		- Disk drives contain one or more disks and we can store data on both sides
+		- Divided into circular tracks and tracks are divided into sectors 
+		- There are read/write heads which read and write to and from the disk
+		- Head can rotate 60-250 times per second (RPM)
+		- Rotation speed relates to transfer rate
+			- Transfer rate is rate that data flows between drive and comp
+		- We can think of disk drive as one dimensional arrays of logical blocks
+		- Logical block is mapped into sectors of disks sequentially by the OS
+
+	DISK SCHEDULING
+		- OS is responsible for using hardware efficiently
+			- For disk drives, this means fast access time and disk bandwidth 
+		- Minimize seek time
+			- Seek time = seek distance
+		- Disk bandwidth is the total number of bytes transferred/ total number of time 
+			between first request for service and completion of last transfer 
+		- Many sources of disk I/O requests
+			- OS, System Processes, User processes 
+			- I/O Requests include input/output mode, disk/memory address and 
+				number of sectors to transfer
+			- OS maintains queue of requests per disk or device
+			- Idle disk can immediately work on I/O requests
+			- Busy disk means work must queue
+				- Optimization algorithms only make sense when a queue exists 
+			- Drive controllers have small buffers and can manage a queue of I/O requests 
+				of varying depth
+			- Several algorithms exist to schedule servicing of disk I/O requests
+			- Analysis is true for one or many platters
+			- Illustrate scheduling algorithms with a request queue with track number 
+				between 0-199
+
+
+	- SHORTEST SEEK TIME FIRST (SSTF)
+		- requests the minimum seek time from current head position
+		- SSTF is a form of SJF scheduling and can cause starvation
+	- pg 455?? hdd scheduling?? 
+
+	
+	- SCAN
+		- The disk arm starts at one end of the disk and moves toward the other end
+			Servicing requests until it gets to the other end of hte disk where head 
+			movement is reversed and servicing continues
+		- SCAN ALGORITHM is somtimes called the elevator algorithm
+		- Largest density at other end of the disk wait the longest 
+
+	- CSCAN
+		- Provides a more uniform wait time than SCAN
+		- Head moves from one end of the disk to the other, servicing as it goes 
+			- When it reaches the other end, it immediately returns to the beginning of the 
+			disk, without serving any requests on the return trip
+		- Treats the cylinders as a circular list that wraps around from last cylinder to first
+	- CLOOK
+		- Version of CSCAN
+		- Arm only goes as far as the last request in each direction, then reverses direction
+		immediately wtihout first going all the way to the end of the disk 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
