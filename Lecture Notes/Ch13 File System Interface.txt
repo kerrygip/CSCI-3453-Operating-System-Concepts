@@ -1,0 +1,162 @@
+FILE SYSTEM INTERFACE
+
+FILE CONCEPT
+
+	- Contiguous logical address space
+	- Types: 
+		- Data
+			- Numeric, character, binary
+		- Program
+	- Contents defined by file's creator
+		- Maybe types: txt file, source file, .exe file 
+
+
+FILE ATTRIBUTES
+	- Name: Only info kept in human readable form	
+	- Identifier: Unique tag(number) identifies file within file system
+	- Type: needed for systems that support different types
+	- Location: Pointer to file location on device
+	- Size: current file size
+	- Protection: controls who can do reading, writing and executing
+	- Time, Date and User ID: Data for protection, security and user monitoring
+	- Information about files are kept in directory structure, which is maintained on disk
+	- Many variations, including extended file attributes, such as file checksum 
+
+
+FILE OPERATIONS
+	- Create, Write, Read, Delete, Truncate, Open, Close
+		- Can move content of entry to memory(open) or 
+		- Can move content of entry to directory structure on disk(close)
+
+OPEN FILES
+	- Several pieces of data are needed to manage open files: 
+		- Open file table : tracks open files
+		- File Pointer: pointer to last read/write location per process that has file open
+		- File Open Count: Counter of number of times a file is open : to allow removal of data
+			from open file table when last processes close it
+		- Disk location of the file: cache of data access information
+		- Access rights: per process access mode information 
+
+
+
+FILE STRUCTURE
+	- None - Sequence of words, bytes
+	- Simple record structure 
+		- Lines, Fixed Length, Variable length
+	- Complex structures
+		- Formatted document, Relocatable load file
+	- Can simulate last two with first method by inserting appropriate control characters
+	- Who decides? : OS or program
+
+
+OPERATIONS PERFORMED ON DIRECTORY
+	- Search, create, delete, list, rename, traverse file system
+
+
+
+DIRECTORY ORGANIZATION
+	- Directory is organized locally to gain
+		- Efficiency : locating a file quickly
+		- Naming : convenient to users
+			- Two users can have same name for different file systems
+			- Same file can have several different names
+		- Grouping : logical grouping of files by properties
+
+FILE SHARING
+	- Sharing files on multi user systems is desirable
+	- Sharing may be done through a protection scheme
+	- On distributed systems, files may be shared across a network
+	- NETWORK FILE SYSTEM(NFS) is a common distributed file sharing method
+	- If Multi-user- system:
+		- User ID identifies user, allowing permissions and protections
+		- Group ID allows users to be in groups, allowing group access rights
+		- Owner or Group of file/directory 
+
+
+FILE SHARING - REMOTE FILE SYSTEMS
+	- Uses networking to allow file system access between systems
+		- Manually vial programs like FTP(file transport protocol)
+		- Automatically, seamlessly using distributed file systems
+		- Semi automatically through internet
+	- Client server model allows clients to mount remote file systems from servers
+		- Server can serve multiple clients
+		- CIFS is standard windows protocol
+		- Stard OS file calles are translated into remote calls
+	- Distributed Information Systems(distributed naming services) such as LDAP, DNS, NIS, Active 
+		Directory implement unified access to information needed for remote computing 
+
+PROTECTION
+	- File owner/creater should be able to control
+		- What can be done and by whom
+	- Types of access:
+		- Read, write, execute, append, delete, list 
+
+
+ACCESS LISTS and GROUPS
+	- Mode of access : read, write , execute
+	- Three classes of users on Linux/Unix : 
+		- Owner acesss, group access, public access
+	- Owner can control read, write execute
+	- Group can read and write
+	- Public can just execute
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
